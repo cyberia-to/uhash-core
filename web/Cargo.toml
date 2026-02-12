@@ -1,0 +1,17 @@
+[package]
+name = "uhash-web"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+uhash-core = { path = "..", default-features = false }
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ["console", "Performance", "Window"] }
+getrandom = { version = "0.3", features = ["wasm_js"] }
+
+[profile.release]
+opt-level = 3
+lto = true

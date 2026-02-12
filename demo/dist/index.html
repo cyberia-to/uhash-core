@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UHash Demo - Native</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 { color: #00d9ff; text-align: center; font-size: 24px; }
+        .badge {
+            background: #00ff88;
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .result {
+            font-size: 56px;
+            font-weight: bold;
+            text-align: center;
+            color: #00ff88;
+        }
+        .unit { font-size: 24px; color: #888; }
+        button {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            background: #00d9ff;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:disabled {
+            background: #444;
+            color: #888;
+        }
+        button:active { transform: scale(0.98); }
+        .params {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .param-label { color: #888; }
+        .param-value { color: #fff; font-weight: bold; }
+        .status {
+            text-align: center;
+            padding: 10px;
+            color: #888;
+            font-size: 14px;
+        }
+        .progress {
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #00d9ff;
+            width: 0%;
+            transition: width 0.1s;
+        }
+        .test-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .test-buttons button {
+            padding: 12px;
+            font-size: 14px;
+        }
+        .mining-btn {
+            background: #00ff88 !important;
+        }
+        .mining-btn.active {
+            background: #ff4444 !important;
+            color: #fff !important;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .stat-label { color: #888; }
+        .stat-value { color: #00ff88; font-weight: bold; text-align: right; }
+    </style>
+</head>
+<body>
+    <div style="text-align: center;">
+        <span class="badge">NATIVE</span>
+    </div>
+    <h1>UHash Benchmark</h1>
+
+    <div class="card">
+        <div class="result" id="hashrate">--</div>
+        <div style="text-align: center;"><span class="unit">H/s</span></div>
+    </div>
+
+    <div class="card">
+        <div class="status" id="status">Loading...</div>
+        <div class="progress"><div class="progress-bar" id="progress"></div></div>
+
+        <div class="test-buttons">
+            <button id="btn-quick" onclick="runQuick()" disabled>Quick (10)</button>
+            <button id="btn-burst" onclick="runBurst()" disabled>Burst (100)</button>
+        </div>
+        <button id="btn-full" onclick="runBenchmark()" disabled>Run Full Benchmark (500)</button>
+
+        <button id="btn-mining" class="mining-btn" onclick="toggleMining()" disabled>Start Mining</button>
+
+        <div class="stats" id="mining-stats" style="display: none;">
+            <div class="stat-label">Total Hashes:</div>
+            <div class="stat-value" id="total-hashes">0</div>
+            <div class="stat-label">Elapsed:</div>
+            <div class="stat-value" id="elapsed-time">0.0s</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top: 0; color: #00d9ff; font-size: 16px;">Algorithm</h3>
+        <div class="params" id="params">
+            <div class="param-label">Chains:</div><div class="param-value" id="p-chains">-</div>
+            <div class="param-label">Memory:</div><div class="param-value" id="p-total">-</div>
+            <div class="param-label">Rounds:</div><div class="param-value" id="p-rounds">-</div>
+            <div class="param-label">Block:</div><div class="param-value" id="p-block">-</div>
+        </div>
+    </div>
+
+    <script>
+        let invoke = null;
+
+        async function initialize() {
+            try {
+                // Wait for Tauri to be ready
+                if (window.__TAURI__ && window.__TAURI__.core) {
+                    invoke = window.__TAURI__.core.invoke;
+                } else {
+                    throw new Error('Tauri not available');
+                }
+
+                const params = await invoke('get_params');
+                document.getElementById('p-chains').textContent = params.chains;
+                document.getElementById('p-total').textContent = params.total_mb + ' MB';
+                document.getElementById('p-rounds').textContent = params.rounds.toLocaleString();
+                document.getElementById('p-block').textContent = params.block_size + ' B';
+                document.getElementById('status').textContent = 'Ready - Native Rust';
+
+                // Enable buttons
+                document.querySelectorAll('button').forEach(b => b.disabled = false);
+            } catch (e) {
+                document.getElementById('status').textContent = 'Error: ' + e.message;
+                console.error(e);
+            }
+        }
+
+        async function runQuick() {
+            await runTest(10);
+        }
+
+        async function runBurst() {
+            await runTest(100);
+        }
+
+        async function runBenchmark() {
+            await runTest(500);
+        }
+
+        async function runTest(count) {
+            if (!invoke) {
+                document.getElementById('status').textContent = 'Error: Tauri not ready';
+                return;
+            }
+
+            const status = document.getElementById('status');
+            const progress = document.getElementById('progress');
+            const result = document.getElementById('hashrate');
+
+            // Disable all buttons
+            document.querySelectorAll('button').forEach(b => b.disabled = true);
+
+            try {
+                // Warmup
+                status.textContent = 'Warming up...';
+                progress.style.width = '10%';
+                await invoke('benchmark', { count: 5 });
+
+                // Run benchmark
+                status.textContent = 'Running ' + count + ' hashes...';
+                progress.style.width = '50%';
+
+                const benchResult = await invoke('benchmark', { count: count });
+
+                progress.style.width = '100%';
+                result.textContent = benchResult.hashrate.toFixed(0);
+                status.textContent = count + ' hashes in ' + (benchResult.elapsed_ms / 1000).toFixed(2) + 's';
+            } catch (e) {
+                status.textContent = 'Error: ' + e.message;
+                console.error(e);
+            }
+
+            // Re-enable buttons
+            document.querySelectorAll('button').forEach(b => b.disabled = false);
+        }
+
+        let isMining = false;
+        let miningInterval = null;
+
+        async function toggleMining() {
+            if (!invoke) {
+                document.getElementById('status').textContent = 'Error: Tauri not ready';
+                return;
+            }
+
+            const btn = document.getElementById('btn-mining');
+            const stats = document.getElementById('mining-stats');
+            const status = document.getElementById('status');
+            const result = document.getElementById('hashrate');
+
+            if (!isMining) {
+                // Start mining
+                try {
+                    const response = await invoke('start_mining');
+                    if (response.success) {
+                        isMining = true;
+                        btn.textContent = 'Stop Mining';
+                        btn.classList.add('active');
+                        stats.style.display = 'grid';
+                        status.textContent = 'Mining...';
+
+                        // Start polling for status
+                        miningInterval = setInterval(updateMiningStatus, 500);
+                    } else {
+                        status.textContent = 'Error: ' + response.error;
+                    }
+                } catch (e) {
+                    status.textContent = 'Error: ' + e.message;
+                    console.error(e);
+                }
+            } else {
+                // Stop mining
+                try {
+                    const response = await invoke('stop_mining');
+                    isMining = false;
+                    btn.textContent = 'Start Mining';
+                    btn.classList.remove('active');
+
+                    if (miningInterval) {
+                        clearInterval(miningInterval);
+                        miningInterval = null;
+                    }
+
+                    result.textContent = response.avg_hashrate.toFixed(0);
+                    status.textContent = 'Mined ' + response.total_hashes.toLocaleString() + ' hashes in ' + response.elapsed_secs.toFixed(1) + 's';
+                } catch (e) {
+                    status.textContent = 'Error: ' + e.message;
+                    console.error(e);
+                }
+            }
+        }
+
+        async function updateMiningStatus() {
+            if (!invoke || !isMining) return;
+
+            try {
+                const status = await invoke('get_mining_status');
+                document.getElementById('hashrate').textContent = status.hashrate.toFixed(0);
+                document.getElementById('total-hashes').textContent = status.total_hashes.toLocaleString();
+                document.getElementById('elapsed-time').textContent = status.elapsed_secs.toFixed(1) + 's';
+            } catch (e) {
+                console.error('Status update error:', e);
+            }
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Small delay to ensure Tauri is injected
+            setTimeout(initialize, 100);
+        });
+    </script>
+</body>
+</html>

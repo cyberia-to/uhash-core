@@ -1,0 +1,28 @@
+# Rust build
+/target
+demo/src-tauri/target/
+
+# Tauri generated (platform-specific, contains local paths)
+demo/src-tauri/gen/
+
+# Web build
+web/pkg/
+web/target/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# iOS test app
+ios-test/build/
+**/*.xcuserstate
+**/xcuserdata/
+ios-test/lib/*.a
+
+# Logs
+*.log

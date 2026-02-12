@@ -1,0 +1,15 @@
+# Build outputs
+src-tauri/target/
+src-tauri/gen/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

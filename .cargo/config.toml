@@ -1,0 +1,14 @@
+# Enable native CPU features for best performance
+# This enables ARM crypto extensions on Apple Silicon
+[target.'cfg(target_arch = "aarch64")']
+rustflags = ["-C", "target-cpu=native"]
+
+# Enable AES-NI and AVX2 on x86_64
+[target.'cfg(target_arch = "x86_64")']
+rustflags = ["-C", "target-cpu=native", "-C", "target-feature=+aes,+avx2"]
+
+# General optimizations
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"

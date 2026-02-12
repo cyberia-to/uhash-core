@@ -1,0 +1,51 @@
+[package]
+name = "uhash-core"
+version = "0.2.0"
+edition = "2021"
+authors = ["Cyberia"]
+description = "UniversalHash v4 algorithm - democratic proof-of-work for Bostrom blockchain"
+repository = "https://github.com/cyberia-to/uhash-core"
+license = "Unlicense"
+readme = "README.md"
+keywords = ["crypto", "hash", "pow", "blockchain", "cosmos"]
+categories = ["cryptography", "no-std"]
+exclude = ["ios-test/", "web/", "*.a", "*.xcodeproj"]
+
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
+
+[features]
+default = ["std", "parallel"]
+std = ["blake3/std"]
+parallel = ["rayon"]
+
+[dependencies]
+# Cryptographic primitives with raw compression function support
+aes = "0.8"
+sha2 = { version = "0.10", features = ["compress"] }
+blake3 = { version = "1.5", default-features = false }
+cipher = "0.4"
+
+# For raw AES intrinsics (native builds only)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+cpufeatures = "0.2"
+
+# Parallelism (optional, for parallel chain processing)
+rayon = { version = "1.10", optional = true }
+
+[dev-dependencies]
+criterion = "0.5"
+hex = "0.4"
+
+[[bench]]
+name = "uhash_bench"
+harness = false
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+
+[profile.bench]
+lto = "fat"
+codegen-units = 1
