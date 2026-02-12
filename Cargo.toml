@@ -9,7 +9,7 @@ license = "Unlicense"
 readme = "README.md"
 keywords = ["crypto", "hash", "pow", "blockchain", "cosmos"]
 categories = ["cryptography", "no-std"]
-exclude = ["ios-test/", "web/", "*.a", "*.xcodeproj"]
+exclude = ["ios-test/", "web/", "demo/", "*.a", "*.xcodeproj"]
 
 [lib]
 crate-type = ["lib", "staticlib", "cdylib"]
