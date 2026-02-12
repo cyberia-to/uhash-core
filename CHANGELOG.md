@@ -2,6 +2,12 @@
 
 All notable changes to uhash-core will be documented in this file.
 
+## [0.2.1] - 2026-02-12
+
+### Fixed
+
+- Updated crate description to be blockchain-agnostic (algorithm is generic, not tied to any specific chain)
+
 ## [0.2.0] - 2026-02-12
 
 ### Breaking Changes

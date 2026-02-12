@@ -1,9 +1,9 @@
 [package]
 name = "uhash-core"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["Cyberia"]
-description = "UniversalHash v4 algorithm - democratic proof-of-work for Bostrom blockchain"
+description = "UniversalHash v4 - democratic proof-of-work algorithm where phones compete with servers"
 repository = "https://github.com/cyberia-to/uhash-core"
 license = "Unlicense"
 readme = "README.md"
