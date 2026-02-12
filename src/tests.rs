@@ -45,7 +45,7 @@ fn test_avalanche_effect() {
     // Expect roughly 128 bits (50% of 256) to differ
     // Allow range of 90-166 (35%-65%)
     assert!(
-        diff_bits >= 90 && diff_bits <= 166,
+        (90..=166).contains(&diff_bits),
         "Avalanche effect: {} bits differ (expected ~128)",
         diff_bits
     );
