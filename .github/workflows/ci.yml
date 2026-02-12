@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master, develop]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 env:
   CARGO_TERM_COLOR: always
@@ -51,7 +51,15 @@ jobs:
         run: cargo install wasm-bindgen-cli
 
       - name: Build WASM
-        working-directory: web
         run: |
+          cd web
           cargo build --release --target wasm32-unknown-unknown
-          wasm-bindgen ../target/wasm32-unknown-unknown/release/uhash_web.wasm --out-dir ./pkg --target web
+          mkdir -p ../demo/dist/wasm
+          wasm-bindgen target/wasm32-unknown-unknown/release/uhash_web.wasm \
+            --out-dir ../demo/dist/wasm --target web
+
+      - name: Upload WASM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: uhash-wasm
+          path: demo/dist/wasm/
