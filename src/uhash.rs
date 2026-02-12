@@ -132,10 +132,12 @@ impl UniversalHash {
             hasher.update(&modified_nonce.to_le_bytes());
             let hash = hasher.finalize();
 
-            state.copy_from_slice(hash.as_bytes());
+            let hash_bytes = hash.as_bytes();
+            state.copy_from_slice(hash_bytes);
 
             // Fill scratchpad using AES-based expansion
-            let seed_array: [u8; 32] = hash.as_bytes().try_into().unwrap();
+            let mut seed_array = [0u8; 32];
+            seed_array.copy_from_slice(hash_bytes);
             fill_scratchpad_aes(&mut self.scratchpads[chain], &seed_array);
         }
     }

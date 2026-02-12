@@ -2,6 +2,12 @@
 
 All notable changes to uhash-core will be documented in this file.
 
+## [0.2.2] - 2026-02-12
+
+### Fixed
+
+- Fixed WASM build compatibility (array conversion in no_std mode)
+
 ## [0.2.1] - 2026-02-12
 
 ### Fixed
