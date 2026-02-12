@@ -4,54 +4,64 @@ Cross-platform native benchmark app for the UniversalHash algorithm. Built with 
 
 ## Supported Platforms
 
-| Platform | Build Output | Notes |
-|----------|--------------|-------|
-| macOS | `.dmg`, `.app` | Universal (ARM64 + x64) |
-| Windows | `.msi`, `.exe` | x64 |
-| Linux | `.deb`, `.AppImage` | x64 |
-| iOS | `.ipa` | ARM64, requires Xcode |
-| Android | `.apk`, `.aab` | ARM64, requires Android SDK |
+| Platform | Build Output | Performance |
+|----------|--------------|-------------|
+| macOS | `.dmg`, `.app` | 1,420 H/s |
+| iOS | `.ipa` | 900 H/s |
+| Android | `.apk` (signed) | 400 H/s |
+| WASM | Browser | 100-400 H/s |
+
+## Quick Start (Using Makefile)
+
+From the project root directory:
+
+```bash
+# Setup all build environments (Rust, Java, Android SDK, etc.)
+make setup
+
+# Build all platforms
+make build
+
+# Or build specific platform
+make wasm      # WASM for browsers
+make macos     # macOS .dmg
+make ios       # iOS .ipa
+make android   # Android .apk (signed)
+
+# Run on device
+make run-macos    # Launch macOS app
+make run-ios      # Run on iPhone/simulator
+make run-android  # Run on Android device/emulator
+make run-web      # Serve WASM at http://localhost:8000
+
+# Install to connected device
+make install-ios
+make install-android
+```
+
+## Build Outputs
+
+| Platform | Location |
+|----------|----------|
+| WASM | `demo/dist/wasm/uhash_web_bg.wasm` |
+| macOS | `demo/src-tauri/target/release/bundle/dmg/` |
+| iOS | `demo/src-tauri/gen/apple/build/arm64/UHash Demo.ipa` |
+| Android | `demo/src-tauri/gen/android/app/build/outputs/apk/arm64/release/app-arm64-release-signed.apk` |
 
 ## Prerequisites
 
-### All Platforms
-- [Rust](https://rustup.rs/) (1.77+)
-- [Tauri CLI](https://tauri.app/): `cargo install tauri-cli`
+The `make setup` command installs most dependencies automatically. Manual requirements:
 
 ### macOS
+- Xcode (for iOS builds): Install from App Store
 - Xcode Command Line Tools: `xcode-select --install`
 
-### iOS (from macOS only)
-- Xcode 15+
-- CocoaPods: `brew install cocoapods`
-- Initialize iOS target: `cargo tauri ios init`
+### All Platforms
+- [Homebrew](https://brew.sh/) (macOS) for automatic Java/Android SDK installation
 
-### Android
-- Java 17: `brew install openjdk@17` (macOS) or install from [Adoptium](https://adoptium.net/)
-- Android SDK with:
-  - Platform Tools
-  - Build Tools 34+
-  - NDK 26+
-  - Platform 34+
-- Set environment variables:
-  ```bash
-  export JAVA_HOME="/path/to/java17"
-  export ANDROID_HOME="/path/to/android-sdk"
-  export NDK_HOME="$ANDROID_HOME/ndk/26.1.10909125"
-  ```
-- Initialize Android target: `cargo tauri android init`
+## Manual Build Commands
 
-### Windows
-- [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with C++ workload
-- [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) (usually pre-installed on Windows 10/11)
-
-### Linux
-- System dependencies (Ubuntu/Debian):
-  ```bash
-  sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-  ```
-
-## Building
+If you prefer not to use Make:
 
 ### Desktop (macOS/Windows/Linux)
 
@@ -60,94 +70,106 @@ cd demo/src-tauri
 cargo tauri build
 ```
 
-Output will be in `target/release/bundle/`.
-
 ### iOS
 
 ```bash
 cd demo/src-tauri
-
-# First time only
-cargo tauri ios init
-
-# Build
+cargo tauri ios init   # First time only
 cargo tauri ios build
-```
-
-Output: `gen/apple/build/arm64/UHash Demo.ipa`
-
-To run on device:
-```bash
-cargo tauri ios dev
 ```
 
 ### Android
 
 ```bash
 cd demo/src-tauri
+export JAVA_HOME="/opt/homebrew/opt/openjdk@17"
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export NDK_HOME="$ANDROID_HOME/ndk/26.1.10909125"
 
-# First time only
-cargo tauri android init
-
-# Build (ARM64 only - recommended)
+cargo tauri android init   # First time only
 cargo tauri android build --target aarch64
 ```
 
-Output: `gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk`
-
-To sign and install on device:
-```bash
-# Sign with debug key
-zipalign -f -v 4 app-universal-release-unsigned.apk app-aligned.apk
-apksigner sign --ks ~/.android/debug.keystore --ks-pass pass:android app-aligned.apk
-
-# Install
-adb install app-aligned.apk
-```
-
-Or run directly on connected device:
-```bash
-cargo tauri android dev
-```
-
-## Development
-
-Run in development mode with hot-reload:
+### WASM
 
 ```bash
-cd demo/src-tauri
-
-# Desktop
-cargo tauri dev
-
-# iOS (with connected device)
-cargo tauri ios dev
-
-# Android (with connected device)
-cargo tauri android dev
+cd web
+cargo build --release --target wasm32-unknown-unknown
+wasm-bindgen target/wasm32-unknown-unknown/release/uhash_web.wasm \
+    --out-dir ../demo/dist/wasm --target web
 ```
 
 ## Benchmarks
 
-Expected native performance:
+### Native (Tauri v2)
 
-| Device | H/s |
-|--------|-----|
-| Mac M1 | ~700 |
-| iPhone 14 Pro | ~594 |
-| Galaxy A56 5G | ~185 |
+| Device | Hashrate | vs Mac |
+|--------|----------|--------|
+| Mac M1/M2 | **1,420 H/s** | 1:1 |
+| iPhone 14 Pro | **900 H/s** | 1.6:1 |
+| Galaxy A56 5G | **400 H/s** | 3.5:1 |
+
+### WASM (Browser)
+
+| Device | Browser | Hashrate |
+|--------|---------|----------|
+| Mac | Safari | ~400 H/s |
+| iPhone | Safari | ~207 H/s |
+| Android | Chrome | ~100 H/s |
+
+**Note:** Native builds are 3-4x faster than WASM due to hardware crypto acceleration.
 
 ## Architecture
 
 ```
 demo/
-├── dist/                 # Frontend (HTML/JS)
-│   └── index.html
+├── dist/                 # Unified frontend
+│   ├── index.html        # Auto-detects Native vs WASM
+│   └── wasm/             # WASM build output
+│       ├── uhash_web.js
+│       └── uhash_web_bg.wasm
 └── src-tauri/
-    ├── src/
-    │   └── lib.rs        # Rust backend (Tauri commands)
+    ├── src/lib.rs        # Rust backend (Tauri commands)
     ├── Cargo.toml
-    └── tauri.conf.json
+    ├── tauri.conf.json
+    └── gen/              # Platform-specific generated code
+        ├── apple/        # iOS/macOS Xcode project
+        └── android/      # Android Gradle project
 ```
 
-The Rust backend uses `uhash-core` for native hashing with hardware acceleration (AES-NI, ARM Crypto).
+## Frontend Modes
+
+The unified frontend (`dist/index.html`) automatically detects the runtime:
+
+- **NATIVE** (green badge): Running in Tauri with native Rust backend
+- **WASM** (orange badge): Running in browser with WASM fallback
+
+Both modes use the same UI but different backends.
+
+## Development
+
+```bash
+# Desktop hot-reload
+make dev
+
+# Or manually:
+cd demo/src-tauri
+cargo tauri dev
+
+# iOS with connected device
+cargo tauri ios dev
+
+# Android with connected device
+cargo tauri android dev
+```
+
+## Troubleshooting
+
+### iOS: "cargo: command not found" in Xcode
+The Makefile automatically patches the Xcode project to include cargo in PATH.
+
+### Android: SDK not found
+Run `make setup-android` to install Android SDK components.
+
+### Android: APK not signed
+The Makefile automatically signs APKs with the debug keystore.

@@ -7,9 +7,7 @@ fn bench_hash(c: &mut Criterion) {
     let mut hasher = UniversalHash::new();
     let input = b"benchmark input data for testing UniversalHash v4 performance";
 
-    c.bench_function("uhash_single", |b| {
-        b.iter(|| hasher.hash(black_box(input)))
-    });
+    c.bench_function("uhash_single", |b| b.iter(|| hasher.hash(black_box(input))));
 }
 
 fn bench_hash_varying_input(c: &mut Criterion) {

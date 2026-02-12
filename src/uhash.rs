@@ -271,9 +271,8 @@ fn round_step_spec_compliant(
 
     // Read block from scratchpad
     // SAFETY: addr is always within bounds due to ADDRESS_MASK
-    let block: [u8; BLOCK_SIZE] = unsafe {
-        core::ptr::read(scratchpad.as_ptr().add(addr) as *const [u8; BLOCK_SIZE])
-    };
+    let block: [u8; BLOCK_SIZE] =
+        unsafe { core::ptr::read(scratchpad.as_ptr().add(addr) as *const [u8; BLOCK_SIZE]) };
 
     // Spec: primitive = (primitive + 1) mod 3 BEFORE applying
     // Where primitive starts at (nonce + chain) mod 3
@@ -311,10 +310,8 @@ fn compute_address(state: &[u8; 32], round: usize) -> usize {
     let round_u64 = round as u64;
 
     // Spec formula for unpredictable address
-    let mixed = state_lo
-        ^ state_hi
-        ^ round_u64.rotate_left(13)
-        ^ round_u64.wrapping_mul(MIXING_CONSTANT);
+    let mixed =
+        state_lo ^ state_hi ^ round_u64.rotate_left(13) ^ round_u64.wrapping_mul(MIXING_CONSTANT);
 
     // Use bitwise AND instead of modulo (NUM_BLOCKS is power of 2)
     ((mixed as usize) & ADDRESS_MASK) * BLOCK_SIZE

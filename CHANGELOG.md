@@ -2,6 +2,40 @@
 
 All notable changes to uhash-core will be documented in this file.
 
+## [0.2.3] - 2026-02-12
+
+### Added
+
+- **Makefile build system**: Single command builds for all platforms
+  - `make setup` - Install all dependencies (Rust, Java, Android SDK)
+  - `make build` - Build all platforms (WASM, macOS, iOS, Android)
+  - `make run-{platform}` - Build and run on device
+  - `make install-{platform}` - Install to connected device
+- **Unified frontend**: Single `index.html` auto-detects Native vs WASM mode
+- **Run targets**: `make run-ios`, `make run-android` for quick device testing
+
+### Changed
+
+- WASM now builds to `demo/dist/wasm/` for unified frontend
+- Updated documentation with benchmark results and build instructions
+
+### Fixed
+
+- Removed unused imports in `lib.rs` (eliminated WASM build warnings)
+- Suppressed Kotlin deprecation warnings in Android build
+- Suppressed Gradle deprecation warnings
+
+### Benchmarks
+
+| Platform | Device | Hashrate |
+|----------|--------|----------|
+| Native | Mac M1/M2 | 1,420 H/s |
+| Native | iPhone 14 Pro | 900 H/s |
+| Native | Galaxy A56 5G | 400 H/s |
+| WASM | Mac Safari | ~400 H/s |
+| WASM | iPhone Safari | ~207 H/s |
+| WASM | Android Chrome | ~100 H/s |
+
 ## [0.2.2] - 2026-02-12
 
 ### Fixed

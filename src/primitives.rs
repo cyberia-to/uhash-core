@@ -348,14 +348,16 @@ fn sha256_compress_arm(state: &[u8; 32], block: &[u8; BLOCK_SIZE]) -> [u8; 32] {
 
     // SHA256 round constants
     const K: [u32; 64] = [
-        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-        0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-        0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-        0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-        0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-        0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-        0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4,
+        0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe,
+        0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f,
+        0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+        0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc,
+        0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
+        0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116,
+        0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7,
+        0xc67178f2,
     ];
 
     unsafe {
@@ -486,8 +488,14 @@ fn sha256_compress_arm(state: &[u8; 32], block: &[u8; BLOCK_SIZE]) -> [u8; 32] {
 
         // Store result (big-endian)
         let mut result = [0u8; 32];
-        vst1q_u8(result.as_mut_ptr(), vrev32q_u8(vreinterpretq_u8_u32(state0)));
-        vst1q_u8(result.as_mut_ptr().add(16), vrev32q_u8(vreinterpretq_u8_u32(state1)));
+        vst1q_u8(
+            result.as_mut_ptr(),
+            vrev32q_u8(vreinterpretq_u8_u32(state0)),
+        );
+        vst1q_u8(
+            result.as_mut_ptr().add(16),
+            vrev32q_u8(vreinterpretq_u8_u32(state1)),
+        );
         result
     }
 }
@@ -531,8 +539,8 @@ fn sha256_compress_soft(state: &[u8; 32], block: &[u8; BLOCK_SIZE]) -> [u8; 32] 
 pub fn blake3_compress(state: &[u8; 32], block: &[u8; BLOCK_SIZE]) -> [u8; 32] {
     // BLAKE3 constants (first 8 words of fractional part of sqrt of first 8 primes)
     const IV: [u32; 8] = [
-        0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
-        0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19,
+        0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB,
+        0x5BE0CD19,
     ];
 
     // Message permutation schedule for BLAKE3
@@ -575,7 +583,6 @@ pub fn blake3_compress(state: &[u8; 32], block: &[u8; BLOCK_SIZE]) -> [u8; 32] {
 
     // 7 rounds of mixing
     for s in &MSG_SCHEDULE[..7] {
-
         // Column mixing
         g(&mut v, 0, 4, 8, 12, m[s[0]], m[s[1]]);
         g(&mut v, 1, 5, 9, 13, m[s[2]], m[s[3]]);

@@ -2,7 +2,7 @@
 
 UniversalHash v4 algorithm - a democratic proof-of-work hash function designed for mobile-friendly mining.
 
-**v0.2.0** - Full spec compliance with UniversalHash v4 specification.
+**v0.2.3** - Full spec compliance with UniversalHash v4 specification.
 
 ## Features
 
@@ -12,18 +12,62 @@ UniversalHash v4 algorithm - a democratic proof-of-work hash function designed f
 - **ASIC-resistant**: Triple primitive rotation (AES + SHA256 + BLAKE3)
 - **No-std compatible**: Works in WASM and CosmWasm environments
 - **Hardware accelerated**: Uses ARM/x86 crypto intrinsics when available
+- **Cross-platform**: Builds for macOS, iOS, Android, WASM from single codebase
 
-## Performance
+## Benchmark Results
 
-| Device | Native | WASM |
-|--------|--------|------|
-| Mac M1/M2 | ~1,100-1,400 H/s | ~400 H/s |
-| iPhone 14 Pro | ~594 H/s | ~200 H/s |
-| Galaxy A56 5G | ~185 H/s | ~50 H/s |
+### Native Performance (Tauri v2)
 
-Phone-to-desktop ratio: **1:1.2 to 1:3.8** depending on device (target: 1:3-5)
+| Device | Hashrate | Ratio to Mac |
+|--------|----------|--------------|
+| Mac M1/M2 | **1,420 H/s** | 1:1 |
+| iPhone 14 Pro | **900 H/s** | 1.6:1 |
+| Galaxy A56 5G | **400 H/s** | 3.5:1 |
 
-## Usage
+### WASM Performance (Browser)
+
+| Device | Platform | Hashrate |
+|--------|----------|----------|
+| Mac | Safari | ~400 H/s |
+| iPhone | Safari | ~207 H/s |
+| Android | Chrome | ~100 H/s |
+
+**Phone-to-desktop ratio: 1.6:1 to 3.5:1** (target: 1:3-5) - Goal achieved!
+
+## Quick Start
+
+### Using Make (Recommended)
+
+```bash
+# Show all available commands
+make help
+
+# Setup build environment (Rust, Java, Android SDK)
+make setup
+
+# Build all platforms
+make build
+
+# Build specific platform
+make wasm      # WASM for browsers
+make macos     # macOS .dmg
+make ios       # iOS .ipa
+make android   # Android .apk (signed)
+
+# Run on device
+make run-macos    # Launch macOS app
+make run-ios      # Run on iPhone/simulator
+make run-android  # Run on Android device/emulator
+make run-web      # Serve WASM in browser
+
+# Development
+make test      # Run tests
+make bench     # Run benchmarks
+make lint      # Check formatting and clippy
+make clean     # Clean all build artifacts
+```
+
+### As a Rust Library
 
 ```rust
 use uhash_core::{UniversalHash, meets_difficulty};
@@ -32,7 +76,6 @@ use uhash_core::{UniversalHash, meets_difficulty};
 let mut hasher = UniversalHash::new();
 
 // Input format: header || nonce (nonce is last 8 bytes)
-// Typical mining format: epoch_seed (32B) || miner_address (20B) || timestamp (8B) || nonce (8B)
 let input = b"epoch_seed_here_32bytes_long!miner_address_20Btimestmpnonce123";
 let hash = hasher.hash(input);
 
@@ -52,7 +95,7 @@ input = header || nonce
         any len   8 bytes (little-endian u64)
 ```
 
-This allows the spec-compliant seed generation: `BLAKE3(header || (nonce ⊕ (chain × golden_ratio)))`
+Typical mining format: `epoch_seed (32B) || miner_address (20B) || timestamp (8B) || nonce (8B)`
 
 ## Algorithm Specification
 
@@ -73,6 +116,21 @@ This allows the spec-compliant seed generation: `BLAKE3(header || (nonce ⊕ (ch
 - **Write-back**: Same address as read (creates read-after-write dependency)
 - **Finalization**: `BLAKE3(SHA256(XOR of all chain states))`
 
+## Project Structure
+
+```
+uhash-core/
+├── src/                  # Core algorithm (Rust library)
+├── web/                  # WASM wrapper for browsers
+├── demo/
+│   ├── dist/             # Unified frontend (auto-detects Native vs WASM)
+│   │   ├── index.html
+│   │   └── wasm/         # WASM build output
+│   └── src-tauri/        # Tauri v2 native backend
+├── Makefile              # Build commands for all platforms
+└── Cargo.toml
+```
+
 ## Cargo Features
 
 - `std` (default): Enable standard library support
@@ -84,25 +142,6 @@ For `no_std` environments (WASM, CosmWasm):
 [dependencies]
 uhash-core = { version = "0.2", default-features = false }
 ```
-
-## Demo App
-
-A cross-platform native benchmark app is included in the `demo/` directory. Built with Tauri v2.
-
-```bash
-cd demo/src-tauri
-
-# Desktop (macOS/Windows/Linux)
-cargo tauri build
-
-# iOS
-cargo tauri ios init && cargo tauri ios build
-
-# Android (ARM64)
-cargo tauri android init && cargo tauri android build --target aarch64
-```
-
-See [demo/README.md](demo/README.md) for detailed build instructions.
 
 ## Changelog
 

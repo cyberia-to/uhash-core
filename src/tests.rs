@@ -125,8 +125,8 @@ fn test_spec_compliance_vectors() {
         let mut v = Vec::with_capacity(68);
         v.extend_from_slice(&[0u8; 32]); // epoch_seed = all zeros
         v.extend_from_slice(&[1u8; 20]); // miner_address = all ones
-        v.extend_from_slice(&[0u8; 8]);  // timestamp = 0
-        v.extend_from_slice(&[0u8; 8]);  // nonce = 0
+        v.extend_from_slice(&[0u8; 8]); // timestamp = 0
+        v.extend_from_slice(&[0u8; 8]); // nonce = 0
         v
     };
     let hash1 = hash(&input1);
@@ -154,8 +154,14 @@ fn test_spec_compliance_vectors() {
     let hash3 = hash(&input3);
 
     // Hashes must be different (proves nonce/seed affect output)
-    assert_ne!(hash1, hash2, "Different nonces should produce different hashes");
-    assert_ne!(hash1, hash3, "Different epoch seeds should produce different hashes");
+    assert_ne!(
+        hash1, hash2,
+        "Different nonces should produce different hashes"
+    );
+    assert_ne!(
+        hash1, hash3,
+        "Different epoch seeds should produce different hashes"
+    );
 
     // Hashes must be deterministic
     assert_eq!(hash(&input1), hash1, "Hash must be deterministic");
@@ -190,7 +196,10 @@ fn test_nonce_extraction() {
 
     let hash2 = hasher.hash(&input2);
 
-    assert_ne!(hash1, hash2, "Different nonces must produce different hashes");
+    assert_ne!(
+        hash1, hash2,
+        "Different nonces must produce different hashes"
+    );
 }
 
 #[test]
@@ -209,7 +218,10 @@ fn test_primitive_rotation_per_spec() {
     }
 
     for i in 1..results.len() {
-        assert_eq!(results[0], results[i], "Hash must be deterministic across runs");
+        assert_eq!(
+            results[0], results[i],
+            "Hash must be deterministic across runs"
+        );
     }
 }
 
@@ -229,9 +241,9 @@ fn test_known_vector() {
 #[test]
 #[ignore] // Run with: cargo test timing_breakdown -- --ignored --nocapture
 fn timing_breakdown() {
-    use std::time::Instant;
     use crate::params::*;
-    use crate::primitives::{aes_compress, sha256_compress, blake3_compress, aes_expand_block};
+    use crate::primitives::{aes_compress, aes_expand_block, blake3_compress, sha256_compress};
+    use std::time::Instant;
 
     let input = b"timing test input";
     let iterations = 10;
@@ -300,13 +312,23 @@ fn timing_breakdown() {
     println!("  AES_Expand:      {:?}", expand_time);
     println!("  Primitive avg:   {:?}", primitive_avg);
     println!("\nParameters:");
-    println!("  ROUNDS: {} × {} chains = {} ops", ROUNDS, CHAINS, ops_per_hash);
-    println!("  SCRATCHPAD: {} blocks × {} chains × 2 AES = {} AES ops",
-             BLOCKS_PER_SCRATCHPAD, CHAINS, BLOCKS_PER_SCRATCHPAD * 2 * CHAINS);
+    println!(
+        "  ROUNDS: {} × {} chains = {} ops",
+        ROUNDS, CHAINS, ops_per_hash
+    );
+    println!(
+        "  SCRATCHPAD: {} blocks × {} chains × 2 AES = {} AES ops",
+        BLOCKS_PER_SCRATCHPAD,
+        CHAINS,
+        BLOCKS_PER_SCRATCHPAD * 2 * CHAINS
+    );
     println!("\nTime breakdown estimate:");
     println!("  Scratchpad init: {:?}", scratchpad_init_est);
     println!("  Round execution: {:?}", rounds_est);
     println!("  Total estimated: {:?}", scratchpad_init_est + rounds_est);
     println!("  Actual total:    {:?}", per_hash);
-    println!("  Overhead:        {:?}", per_hash.saturating_sub(scratchpad_init_est + rounds_est));
+    println!(
+        "  Overhead:        {:?}",
+        per_hash.saturating_sub(scratchpad_init_est + rounds_est)
+    );
 }
