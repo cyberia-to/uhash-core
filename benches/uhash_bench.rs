@@ -1,6 +1,6 @@
 //! Benchmark for UniversalHash algorithm
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use uhash_core::UniversalHash;
 
 fn bench_hash(c: &mut Criterion) {

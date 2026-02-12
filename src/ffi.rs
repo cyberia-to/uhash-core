@@ -10,7 +10,7 @@ pub struct UHasher {
 
 /// Create a new hasher instance
 /// Returns a pointer to the hasher (caller must free with uhash_free)
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn uhash_new() -> *mut UHasher {
     let hasher = Box::new(UHasher {
         inner: UniversalHash::new(),
@@ -19,7 +19,7 @@ pub extern "C" fn uhash_new() -> *mut UHasher {
 }
 
 /// Free a hasher instance
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn uhash_free(hasher: *mut UHasher) {
     if !hasher.is_null() {
         unsafe {
@@ -33,7 +33,7 @@ pub extern "C" fn uhash_free(hasher: *mut UHasher) {
 /// - input: pointer to input bytes
 /// - input_len: length of input
 /// - output: pointer to 32-byte buffer for result
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn uhash_hash(
     hasher: *mut UHasher,
     input: *const u8,
@@ -55,7 +55,7 @@ pub extern "C" fn uhash_hash(
 }
 
 /// Benchmark: compute N hashes and return total microseconds
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn uhash_benchmark(iterations: u32) -> u64 {
     use std::time::Instant;
 
@@ -74,7 +74,7 @@ pub extern "C" fn uhash_benchmark(iterations: u32) -> u64 {
 }
 
 /// Get hash rate (hashes per second) from a benchmark run
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn uhash_hashrate(iterations: u32, microseconds: u64) -> f64 {
     if microseconds == 0 {
         return 0.0;

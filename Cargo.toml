@@ -1,7 +1,7 @@
 [package]
 name = "uhash-core"
 version = "0.2.3"
-edition = "2021"
+edition = "2024"
 authors = ["Cyberia"]
 description = "UniversalHash v4 - democratic proof-of-work algorithm where phones compete with servers"
 repository = "https://github.com/cyberia-to/uhash-core"

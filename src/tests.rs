@@ -1,6 +1,6 @@
 //! Tests for UniversalHash algorithm
 
-use crate::{hash, meets_difficulty, UniversalHash};
+use crate::{UniversalHash, hash, meets_difficulty};
 
 #[cfg(not(feature = "std"))]
 use alloc::vec;

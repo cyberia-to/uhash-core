@@ -72,7 +72,7 @@ mod uhash;
 mod ffi;
 
 pub use params::*;
-pub use uhash::{hash, meets_difficulty, UniversalHash};
+pub use uhash::{UniversalHash, hash, meets_difficulty};
 
 #[cfg(test)]
 mod tests;
